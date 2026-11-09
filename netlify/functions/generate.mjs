@@ -38,7 +38,9 @@ export default async (req) => {
     if (prompt.length > 3000) return errorResponse("Description must be 3000 characters or fewer.");
     if (style.length > 1000) return errorResponse("Style must be 1000 characters or fewer.");
     if (prompt) body.prompt = prompt;
-    if (style) body.style = style;
+    // The docs require at least one of style/lyrics/media in non-custom mode,
+    // so when no style is given, reuse the description (capped at 1000 chars).
+    body.style = style || prompt.slice(0, 1000);
   } else {
     // Custom mode: you control title, style, and the exact lyrics.
     const title = str(input.title);
