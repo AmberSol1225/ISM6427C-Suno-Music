@@ -10,6 +10,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    // Apply the saved theme before first paint to avoid a flash. "system" = follow the device.
+    try {
+      var t = localStorage.getItem("songforge.theme");
+      if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
 </head>
 <body>
   <header class="topbar">
@@ -19,8 +26,15 @@
       </span>
       <span>SongForge</span>
     </div>
-    <div class="credits" id="credits" title="Remaining Suno API credits">
-      <span class="dot"></span><span id="creditsText">Checking credits…</span>
+    <div class="top-actions">
+      <div class="theme-switch" role="group" aria-label="Color theme">
+        <button type="button" data-theme-choice="light" aria-pressed="false" title="Light theme">☀️<span class="t-label">Light</span></button>
+        <button type="button" data-theme-choice="system" aria-pressed="true" title="Match your device">💻<span class="t-label">System</span></button>
+        <button type="button" data-theme-choice="dark" aria-pressed="false" title="Dark theme">🌙<span class="t-label">Dark</span></button>
+      </div>
+      <div class="credits" id="credits" title="Remaining Suno API credits">
+        <span class="dot"></span><span id="creditsText">Checking credits…</span>
+      </div>
     </div>
   </header>
 

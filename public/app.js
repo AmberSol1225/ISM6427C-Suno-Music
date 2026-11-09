@@ -508,6 +508,35 @@ async function onWriteLyrics() {
   }
 }
 
+// ---------------- theme ----------------
+const THEME_KEY = "songforge.theme";
+function applyTheme(choice) {
+  const root = document.documentElement;
+  if (choice === "light" || choice === "dark") root.dataset.theme = choice;
+  else root.removeAttribute("data-theme"); // system: CSS follows prefers-color-scheme
+  $$("[data-theme-choice]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeChoice === choice)));
+}
+function initTheme() {
+  let saved = "system";
+  try {
+    saved = localStorage.getItem(THEME_KEY) || "system";
+  } catch {
+    /* storage unavailable */
+  }
+  applyTheme(saved);
+  $$("[data-theme-choice]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const choice = b.dataset.themeChoice;
+      applyTheme(choice);
+      try {
+        localStorage.setItem(THEME_KEY, choice);
+      } catch {
+        /* storage unavailable */
+      }
+    })
+  );
+}
+
 // ---------------- misc UI ----------------
 function updateCounts() {
   $("#promptCount").textContent = $("#prompt").value.length;
@@ -524,6 +553,7 @@ function chip(text, onClick) {
 }
 
 function init() {
+  initTheme();
   $$(".tab").forEach((t) => t.addEventListener("click", () => setMode(t.dataset.mode)));
   $("#instrumental").addEventListener("change", syncInstrumental);
   $("#genForm").addEventListener("submit", onGenerate);
