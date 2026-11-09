@@ -204,3 +204,24 @@ details.advanced[open] summary { margin-bottom: 12px; }
 .player-meta span { color: var(--muted); font-size: 12px; }
 .player audio { width: 100%; }
 @media (max-width: 640px) { .player { grid-template-columns: 44px 1fr; padding: 10px 12px; } .player img { width: 44px; height: 44px; } .player audio { grid-column: 1 / -1; } }
+
+/* ---------- purpose ---------- */
+.purpose-wrap { max-width: 1280px; margin: 0 auto; padding: 0 28px 16px; }
+@media (max-width: 900px) { .purpose-wrap { padding: 0 16px 12px; } }
+.purpose {
+  padding: 18px 22px; border: 1px solid var(--panel-border); border-radius: 16px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, .12), rgba(236, 72, 153, .08));
+}
+.purpose h2 { margin: 0 0 6px; font-size: 16px; }
+.purpose p { margin: 0; color: #d6d6e4; font-size: 14px; line-height: 1.6; }
+
+/* ---------- persona ---------- */
+.field-hint { display: block; color: var(--muted); font-size: 12px; margin-top: 6px; line-height: 1.4; }
+.persona-tag { color: var(--accent); }
+.dialog {
+  width: min(460px, calc(100vw - 32px)); padding: 22px; border-radius: 16px;
+  border: 1px solid var(--panel-border); background: #15151d; color: var(--text);
+}
+.dialog::backdrop { background: rgba(0, 0, 0, .6); }
+.dialog h3 { margin: 0 0 6px; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }

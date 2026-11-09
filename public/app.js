@@ -49,6 +49,40 @@ function saveTasks() {
 }
 let tasks = loadTasks();
 
+// Personas (saved voice + style from a finished song), kept in this browser.
+const PERSONA_KEY = "songforge.personas.v1";
+function loadPersonas() {
+  try {
+    const list = JSON.parse(localStorage.getItem(PERSONA_KEY) || "[]");
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+let personas = loadPersonas();
+function savePersonas() {
+  try {
+    localStorage.setItem(PERSONA_KEY, JSON.stringify(personas));
+  } catch {
+    /* storage unavailable */
+  }
+}
+function renderPersonaSelect(selectId) {
+  const sel = $("#persona");
+  const keep = selectId ?? sel.value;
+  sel.innerHTML = '<option value="">None — fresh voice &amp; style</option>';
+  for (const p of personas) {
+    const o = document.createElement("option");
+    o.value = p.personaId;
+    o.textContent = `🎤 ${p.name}`;
+    sel.appendChild(o);
+  }
+  sel.value = personas.some((p) => p.personaId === keep) ? keep : "";
+  $("#personaHint").textContent = personas.length
+    ? "New songs will borrow this persona's voice and style."
+    : "Make a persona from any finished song (🎤 button) to reuse its voice and style.";
+}
+
 // ---------------- api ----------------
 async function api(path, options = {}) {
   const res = await fetch(path, {
@@ -118,7 +152,7 @@ function setBusy(btn, busy, label) {
 
 function collectPayload() {
   const instrumental = $("#instrumental").checked;
-  const base = { customMode: mode === "custom", instrumental, model: $("#model").value };
+  const base = { customMode: mode === "custom", instrumental, model: $("#model").value, personaId: $("#persona").value };
 
   if (mode === "simple") {
     return { ...base, prompt: $("#prompt").value.trim(), style: $("#style").value.trim() };
@@ -165,7 +199,14 @@ async function onGenerate(e) {
     const task = {
       taskId,
       label: label.slice(0, 140),
-      meta: [payload.model.replace("_", " "), payload.instrumental ? "Instrumental" : "Vocals", payload.customMode ? "Custom" : "Simple"].join(" · "),
+      meta: [
+        payload.model.replace("_", " "),
+        payload.instrumental ? "Instrumental" : "Vocals",
+        payload.customMode ? "Custom" : "Simple",
+        personas.find((p) => p.personaId === payload.personaId)?.name,
+      ]
+        .filter(Boolean)
+        .join(" · "),
       createdAt: Date.now(),
       status: "PENDING",
       tracks: [],
@@ -310,6 +351,17 @@ function buildTrack(tr, task) {
     dl.setAttribute("aria-disabled", "true");
   }
 
+  const personaBtn = $(".persona-btn", node);
+  if (task.status !== "SUCCESS" || !tr.audioUrl || !tr.id) personaBtn.remove();
+  else if (tr.personaId) {
+    personaBtn.textContent = "🎤 Use persona";
+    personaBtn.title = "Use this song's persona for your next song";
+    personaBtn.addEventListener("click", () => {
+      renderPersonaSelect(tr.personaId);
+      $("#createTitle").scrollIntoView({ behavior: "smooth" });
+    });
+  } else personaBtn.addEventListener("click", () => openPersonaDialog(tr, task));
+
   const lyricsBtn = $(".lyrics-toggle", node);
   const pre = $(".track-lyrics", node);
   const instrumentalOnly = !tr.lyrics || /^\s*$/.test(tr.lyrics);
@@ -358,6 +410,52 @@ function highlightPlaying() {
 audio.addEventListener("play", highlightPlaying);
 audio.addEventListener("pause", highlightPlaying);
 audio.addEventListener("ended", highlightPlaying);
+
+// ---------------- personas ----------------
+let personaTarget = null;
+function openPersonaDialog(tr, task) {
+  personaTarget = { tr, task };
+  $("#personaSource").textContent = tr.title || task.label || "this song";
+  $("#personaName").value = tr.title ? `${tr.title} voice`.slice(0, 100) : "";
+  $("#personaDesc").value = tr.tags || "";
+  $("#personaError").hidden = true;
+  $("#personaDialog").showModal();
+}
+
+async function onCreatePersona(e) {
+  e.preventDefault();
+  const { tr, task } = personaTarget || {};
+  if (!tr) return;
+  const name = $("#personaName").value.trim();
+  const description = $("#personaDesc").value.trim();
+  const errEl = $("#personaError");
+  if (!name || !description) {
+    errEl.textContent = "Add a name and a short description of the sound.";
+    errEl.hidden = false;
+    return;
+  }
+  const btn = $("#personaSave");
+  setBusy(btn, true, "Creating…");
+  try {
+    const r = await api("/api/persona", {
+      method: "POST",
+      body: JSON.stringify({ taskId: task.taskId, audioId: tr.id, name, description, style: tr.tags || "" }),
+    });
+    personas.unshift({ personaId: r.personaId, name: r.name, description: r.description, createdAt: Date.now() });
+    savePersonas();
+    tr.personaId = r.personaId; // each song can only become a persona once
+    saveTasks();
+    renderTask(task);
+    renderPersonaSelect(r.personaId);
+    $("#personaDialog").close();
+    refreshCredits();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.hidden = false;
+  } finally {
+    setBusy(btn, false, "Create persona");
+  }
+}
 
 // ---------------- lyrics helper ----------------
 async function onWriteLyrics() {
@@ -463,6 +561,10 @@ function init() {
     saveTasks();
     render();
   });
+
+  $("#personaForm").addEventListener("submit", onCreatePersona);
+  $("#personaCancel").addEventListener("click", () => $("#personaDialog").close());
+  renderPersonaSelect();
 
   setMode("simple");
   updateCounts();

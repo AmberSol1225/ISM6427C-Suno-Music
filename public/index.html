@@ -24,6 +24,17 @@
     </div>
   </header>
 
+  <div class="purpose-wrap"><section class="purpose" aria-labelledby="purposeTitle">
+    <h2 id="purposeTitle">Our purpose</h2>
+    <p>
+      SongForge makes music creation open to everyone. You don't need instruments, studio time or
+      music training: describe an idea, or bring your own lyrics, and get original
+      songs in minutes. Use them for school projects, videos, podcasts, small businesses, gifts or
+      just for fun. Save a song you love as a <strong>persona</strong> to keep that voice and style
+      for your next track.
+    </p>
+  </section></div>
+
   <main class="layout">
     <!-- ===== Create panel ===== -->
     <section class="panel create" aria-labelledby="createTitle">
@@ -73,6 +84,14 @@
           <input id="style" type="text" maxlength="1000" placeholder="indie pop, dreamy synths, female vocals, 110 bpm" />
         </label>
         <div class="chips" id="styleChips" aria-label="Style suggestions"></div>
+
+        <label class="field">
+          <span class="label">Persona <small>optional</small></span>
+          <select id="persona">
+            <option value="">None — fresh voice &amp; style</option>
+          </select>
+          <span class="field-hint" id="personaHint">Make a persona from any finished song (🎤 button) to reuse its voice and style.</span>
+        </label>
 
         <div class="row">
           <label class="switch">
@@ -186,11 +205,33 @@
       </div>
       <div class="track-actions">
         <button class="btn ghost small lyrics-toggle" type="button">Lyrics</button>
+        <button class="btn ghost small persona-btn" type="button" title="Save this song's voice and style as a persona">🎤 Persona</button>
         <a class="btn ghost small download" download target="_blank" rel="noopener">⬇ MP3</a>
       </div>
       <pre class="track-lyrics" hidden></pre>
     </div>
   </template>
+
+  <dialog id="personaDialog" class="dialog">
+    <form method="dialog" id="personaForm">
+      <h3>Create a persona</h3>
+      <p class="sub">Save the voice and style of <strong id="personaSource"></strong> so new songs can sound like it.</p>
+      <label class="field">
+        <span class="label">Name</span>
+        <input id="personaName" type="text" maxlength="100" required placeholder="Sunny Pop Singer" />
+      </label>
+      <label class="field">
+        <span class="label">Description</span>
+        <textarea id="personaDesc" rows="3" maxlength="1000" required
+          placeholder="Bright female pop vocals, upbeat synths, summery and playful"></textarea>
+      </label>
+      <div class="form-error" id="personaError" role="alert" hidden></div>
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" id="personaCancel">Cancel</button>
+        <button type="submit" class="btn primary" id="personaSave">Create persona</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="app.js" type="module"></script>
 </body>

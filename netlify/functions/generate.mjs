@@ -77,6 +77,13 @@ export default async (req) => {
     if (Number.isFinite(duration) && duration >= 10 && duration <= 360) body.duration = duration;
   }
 
+  // Optional persona from /api/persona: makes the song sound like a saved one.
+  const personaId = str(input.personaId);
+  if (personaId && /^[\w-]{4,128}$/.test(personaId)) {
+    body.personaId = personaId;
+    body.personaModel = "style_persona";
+  }
+
   try {
     const data = await sunoFetch("/api/v1/generate", { method: "POST", body });
     return json({ ok: true, taskId: data?.taskId });
