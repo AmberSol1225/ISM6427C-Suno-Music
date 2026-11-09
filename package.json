@@ -1,0 +1,13 @@
+{
+  "name": "ism6427c-suno-music",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SongForge — generate AI music with the Suno API (sunoapi.org), deployed on Netlify.",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
